@@ -1,0 +1,18 @@
+# Netlify configuration for the Studio One frontend.
+# The site root is the `frontend` folder, the build output is `frontend/dist`.
+
+[build]
+  base = "frontend"
+  command = "npm run build"
+  publish = "dist"
+
+# Single page application: every route is served by index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

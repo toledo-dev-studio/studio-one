@@ -1,0 +1,23 @@
+# Git and repo infrastructure
+.git
+.gitignore
+.github
+compose.yaml
+docker
+
+# Dependencies and build artifacts (generated inside the container)
+**/node_modules
+**/.pnpm-store
+frontend/dist
+
+# Secrets
+**/.env
+**/.env.*
+!**/.env.example
+
+# Logs and noise
+logs
+*.log
+.DS_Store
+.vscode
+.idea
