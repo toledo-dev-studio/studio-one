@@ -1,3 +1,5 @@
+import { Link } from "react-router";
+
 import {
     ListMusicIcon,
     LogOutIcon,
@@ -27,18 +29,18 @@ const PROVIDER_LABELS: Record<string, string> = {
 const NEXT_STEPS = [
     {
         icon: PenLineIcon,
-        title: "Write your first composition",
-        description: "Give it a title, a key and a tempo. Everything starts in one place.",
+        title: "Write your first chord sheet",
+        description: "Give it a title, write each section and keep the chords above the lyrics.",
     },
     {
         icon: SlidersHorizontalIcon,
-        title: "Organize by instrument",
-        description: "Keep parts, tempo and notes attached to the work they belong to.",
+        title: "Transpose and use a capo",
+        description: "Read in any key; the capo only tells you how it sounds, it never rewrites your sheet.",
     },
     {
         icon: Share2Icon,
-        title: "Share it when it is ready",
-        description: "Move from private draft to published piece without losing the thread.",
+        title: "Build your chord vocabulary",
+        description: "Every chord with its fretboard diagram, ready to insert with one click.",
     },
 ];
 
@@ -96,24 +98,24 @@ export const WelcomePage = () => {
                         className="h-8 gap-1.5 rounded-full border-border/80 bg-card px-3.5 text-xs font-medium text-muted-foreground"
                     >
                         <SparklesIcon className="text-primary" />
-                        Compositions coming next
+                        Chords module is live
                     </Badge>
                 }
             />
 
             <div className="grid gap-5 lg:grid-cols-5">
-                <Card className="lg:col-span-3">
+                <Card className="relative lg:col-span-3">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <ListMusicIcon className="text-primary" />
-                            Compositions
+                            Chords
                         </CardTitle>
                         <CardDescription>
-                            Everything you write, in one library.
+                            Your chord sheets, in one library.
                         </CardDescription>
                         <CardAction>
                             <Badge variant="secondary" className="rounded-full">
-                                In progress
+                                Ready
                             </Badge>
                         </CardAction>
                     </CardHeader>
@@ -127,23 +129,27 @@ export const WelcomePage = () => {
                                 </span>
                                 <div className="flex flex-col gap-1.5">
                                     <p className="font-heading text-lg font-semibold tracking-[-0.02em]">
-                                        No compositions yet
+                                        Write, read and transpose
                                     </p>
                                     <p className="mx-auto max-w-sm text-sm leading-relaxed text-muted-foreground">
-                                        Your scores, drafts and published works will live here.
-                                        The compositions module is the next chapter of Studio One.
+                                        Sections, chords above the lyrics, transposition with a
+                                        capo, and a diagram for every chord in the library.
                                     </p>
                                 </div>
+                                <Button render={<Link to="/chords" />} nativeButton={false} className="mt-1">
+                                    <PenLineIcon />
+                                    Open Chords
+                                </Button>
                             </div>
                         </div>
                     </CardContent>
 
                     <CardFooter className="justify-between text-xs text-muted-foreground">
                         <span className="flex items-center gap-1.5">
-                            <span className="size-1.5 rounded-full bg-primary/40" />
-                            Empty library
+                            <span className="size-1.5 rounded-full bg-success" />
+                            Available now
                         </span>
-                        <span>Ready when you are</span>
+                        <span>Private to you</span>
                     </CardFooter>
                 </Card>
 

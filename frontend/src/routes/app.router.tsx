@@ -10,6 +10,7 @@ import { RootLayout } from "./components/RootLayout";
  */
 const lazyModuleRouters: Record<string, () => Promise<{ default: RouteObject }>> = {
     "/welcome": () => import("@/modules/welcome/routes/welcome.router"),
+    "/chords": () => import("@/modules/chords/routes/chords.router"),
 };
 
 const loadedModuleRouters = new Set<string>();
