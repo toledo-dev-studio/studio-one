@@ -1,0 +1,34 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Reads are scoped by the collection path itself: a query on
+    // `users/{uid}/chords` can only reach documents of that user, and
+    // `request.auth.uid == uid` is provable for list queries.
+    // NOTE: checking the denormalized `document.uid` field here would break
+    // `getDocs`, because a list query cannot prove a field it does not
+    // filter on, so Firestore rejects the whole query with permission-denied.
+    // Future sharing rules will be added here (shared with a specific user,
+    // or readable through a public link).
+    function isPathOwner(ownerUid) {
+      return isSignedIn() && request.auth.uid == ownerUid;
+    }
+
+    // Writes know the full document, so the denormalized `uid` field is
+    // enforced here and can never diverge from the owner in the path.
+    function isOwner(document, ownerUid) {
+      return isPathOwner(ownerUid) && request.auth.uid == document.uid;
+    }
+
+    match /users/{uid}/chords/{chordId} {
+      allow read: if isPathOwner(uid);
+      allow create: if isOwner(request.resource.data, uid);
+      allow update, delete: if isOwner(resource.data, uid);
+    }
+  }
+}
