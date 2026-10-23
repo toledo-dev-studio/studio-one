@@ -10,10 +10,6 @@
           "mcp"
         ]
       }
-    },
-    "netlify": {
-      "type": "local",
-      "command": ["npx", "-y", "@netlify/mcp"]
     }
   }
 }
