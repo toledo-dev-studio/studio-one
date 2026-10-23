@@ -1,5 +1,6 @@
 import { initializeApp, type FirebaseApp } from "firebase/app";
 import { connectAuthEmulator, getAuth, type Auth } from "firebase/auth";
+import { getFirestore, type Firestore } from "firebase/firestore";
 
 import {
     FIREBASE_AUTH_EMULATOR_URL,
@@ -40,4 +41,23 @@ export const getFirebaseAuth = (): Auth => {
     }
 
     return firebaseAuth;
+};
+
+let firebaseFirestore: Firestore | undefined;
+
+/**
+ * Returns the Firestore instance, creating it on the first call.
+ * Every document lives under `users/{uid}/chords`, so a user can only reach
+ * their own compositions even before the security rules are evaluated.
+ * @throws When the Firebase configuration is missing.
+ */
+export const getFirebaseFirestore = (): Firestore => {
+    if (!firebaseFirestore) {
+        if (!IS_FIREBASE_CONFIGURED)
+            throw new Error(FIREBASE_NOT_CONFIGURED_MESSAGE);
+
+        firebaseFirestore = getFirestore(getFirebaseApp());
+    }
+
+    return firebaseFirestore;
 };
