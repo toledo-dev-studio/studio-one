@@ -1,9 +1,11 @@
 # Netlify configuration for the Studio One frontend.
 # The site root is the `frontend` folder, the build output is `frontend/dist`.
+# NOTE: this file must live at the repo root — Netlify does not read it from
+# `frontend/public`, and Vite would otherwise ship it as a static asset.
 
 [build]
   base = "frontend"
-  command = "npm run build"
+  command = "pnpm build"
   publish = "dist"
 
 # Single page application: every route is served by index.html
