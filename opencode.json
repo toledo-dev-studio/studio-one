@@ -1,0 +1,19 @@
+{
+  "mcp": {
+    "servers": {
+      "firebase": {
+        "type": "local",
+        "command": [
+          "npx",
+          "-y",
+          "firebase-tools@latest",
+          "mcp"
+        ]
+      }
+    },
+    "netlify": {
+      "type": "local",
+      "command": ["npx", "-y", "@netlify/mcp"]
+    }
+  }
+}
