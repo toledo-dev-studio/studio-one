@@ -80,6 +80,16 @@ Para que el inicio de sesión con Google funcione:
 
 > La configuración web de Firebase es pública por diseño (viaja al navegador). Protégela restringiendo la API key y los dominios autorizados desde la consola.
 
+#### Reglas de Firestore
+
+El módulo de acordes guarda las fichas en Cloud Firestore, en la subcolección privada `users/{uid}/chords/{id}`. Las reglas que limitan la lectura y escritura al dueño están en `firestore.rules` (en la raíz) y se despliegan con:
+
+```bash
+firebase deploy --only firestore:rules
+```
+
+Sin ese paso, las listas y lecturas de fichas responden `permission-denied` (la interfaz lo muestra como un aviso de error, no se rompe).
+
 ---
 
 ### Estructura del proyecto
@@ -88,6 +98,7 @@ Para que el inicio de sesión con Google funcione:
 studio-one/
 ├── compose.yaml                      # Servicios de Docker (dev y prod)
 ├── .env.example                      # Plantilla de variables de entorno
+├── firebase.json · firestore.rules   # Reglas de Firestore (dueño de users/{uid}/chords)
 ├── docker/
 │   ├── development/                  # Imagen de desarrollo (Vite + HMR)
 │   └── prod/                         # Imagen de producción (build + nginx)
@@ -109,10 +120,10 @@ studio-one/
         ├── context/                  # ThemeContext, LoaderContext
         ├── stores/                   # LoaderStore (Zustand)
         ├── hooks/
-        ├── lib/                      # query-client, constantes, extensiones, helpers
+        ├── lib/                      # query-client, constantes, extensiones, helpers, teoría de acordes (lib/chords)
         ├── interfaces/
         ├── shared/                   # Componentes reutilizables y primitivas shadcn/ui
-        └── modules/                  # Módulos de dominio (auth, welcome, ...)
+        └── modules/                  # Módulos de dominio (auth, welcome, chords, ...)
 ```
 
 #### Módulos de dominio
@@ -132,6 +143,15 @@ src/modules/<módulo>/
 ```
 
 El módulo `auth` es el responsable del inicio de sesión con Firebase: `stores/auth.store.ts` mantiene el `authStatus` (`checking` / `authenticated` / `not-authenticated`) y las acciones `signInWithGoogle()` y `logout()`.
+
+El módulo `chords` gestiona las fichas de acordes (`/chords`):
+
+- **Persistencia**: Firestore, en `users/{uid}/chords/{id}`. Cada usuario solo ve las suyas (las reglas de `firestore.rules` lo garantizan).
+- **Formato**: texto plano como única fuente de verdad — cabeceras `[Sección]` y líneas de acordes sobre la letra. El editor lo divide en bloques por sección y lo serializa al guardar.
+- **Editor** (`/chords/new` y `/chords/:id?mode=edit`): secciones con presets (Intro, Verse, Chorus...), guardado explícito (botón y `Cmd/Ctrl+S`), aviso si hay cambios sin guardar, inserción de acordes desde el panel derecho con un clic, y alternancia `Edit | Preview` con transposición local.
+- **Lectura** (`/chords/:id`): cabecera con tono, capo y tempo; transposición que solo cambia lo mostrado (nunca reescribe la ficha guardada); el capo es informativo.
+- **Detección de tono**: botón *Detect key* que sugiere el tono con un nivel de confianza; el usuario puede aplicarlo o descartarlo.
+- **Biblioteca de acordes**: 12 armónicas (incluidas todas las alteraciones) × 25 tonalidades, con diagramas SVG generados con `svguitar` a partir de un conjunto filtrado de chords-db (`frontend/scripts/build-chords-db.mjs`, regenerable con `pnpm build:chords-db`).
 
 ---
 
