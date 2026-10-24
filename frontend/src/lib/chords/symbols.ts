@@ -35,7 +35,7 @@ export const LIBRARY_ROOTS = [
 const DB_KEY_BY_ROOT: Record<string, string> = {
     C: "C",
     "C#": "Csharp",
-    Db: "C",
+    Db: "Csharp",
     D: "D",
     "D#": "Eb",
     Eb: "Eb",
