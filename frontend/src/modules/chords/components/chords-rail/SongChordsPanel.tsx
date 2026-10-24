@@ -1,8 +1,12 @@
 import { useMemo, useState } from "react";
 
-import { PlusIcon, SearchIcon } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 
 import { extractChordUsages } from "@/lib/chords/detect";
+import { resolveSongChords } from "@/lib/chords/resolve";
+import { Spinner } from "@/shared/components/spinner/Spinner";
+import { useChordBook } from "../../hooks/use-chord-book";
+import { ChordCell } from "./ChordCell";
 
 interface Props {
     /** Current text of the chord sheet (serialized from the editor). */
@@ -12,17 +16,45 @@ interface Props {
 }
 
 /**
- * Chords used by the song being edited, with their frequency. The list updates
- * while the user writes and clicking a chord inserts it at the cursor.
+ * Chords used by the song being edited, each drawn with its fretboard diagram
+ * exactly like the library panel. Spellings of the same chord are merged, so a
+ * sheet writing both "Bb" and "A#" shows a single cell. The list updates while
+ * the user writes and clicking a chord inserts it at the cursor.
  */
 export const SongChordsPanel = ({ content, onInsert }: Props) => {
+    const { book, failed } = useChordBook();
     const usages = useMemo(() => extractChordUsages(content), [content]);
+    const chords = useMemo(() => resolveSongChords(book, usages), [book, usages]);
     const [search, setSearch] = useState("");
 
     const term = search.trim().toLowerCase();
     const filtered = term
-        ? usages.filter((usage) => usage.chord.toLowerCase().includes(term))
-        : usages;
+        ? chords.filter((chord) => chord.variants.some((variant) => variant.toLowerCase().includes(term)))
+        : chords;
+
+    if (failed)
+        return (
+            <p className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-5 text-center text-xs leading-relaxed text-warning">
+                The chord book could not be loaded. Try again later.
+            </p>
+        );
+
+    // Without the dataset every chord would render as a bare symbol and then
+    // swap for its diagram, so the grid waits for it like the library does.
+    if (!book)
+        return (
+            <div className="flex items-center justify-center gap-2 rounded-lg border border-dashed border-border px-3 py-5 text-xs text-muted-foreground">
+                <Spinner variant="foreground" />
+                Loading chord book…
+            </div>
+        );
+
+    if (chords.length === 0)
+        return (
+            <p className="rounded-lg border border-dashed border-border px-3 py-5 text-center text-xs leading-relaxed text-muted-foreground">
+                The chords you write in the sheet will be listed here.
+            </p>
+        );
 
     return (
         <div className="flex flex-col gap-3">
@@ -37,42 +69,21 @@ export const SongChordsPanel = ({ content, onInsert }: Props) => {
                 />
             </label>
 
-            {usages.length === 0 ? (
-                <p className="rounded-lg border border-dashed border-border px-3 py-5 text-center text-xs leading-relaxed text-muted-foreground">
-                    The chords you write in the sheet will be listed here.
-                </p>
-            ) : filtered.length === 0 ? (
+            {filtered.length === 0 ? (
                 <p className="px-1 text-xs text-muted-foreground">
                     No chord matches “{search.trim()}”.
                 </p>
             ) : (
-                <ul className="flex flex-col gap-0.5">
-                    {filtered.map((usage) => (
-                        <li key={usage.chord}>
-                            <button
-                                type="button"
-                                onClick={() => onInsert(usage.chord)}
-                                className="group flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-muted"
-                                title={`Insert ${usage.chord}`}
-                            >
-                                <span className="font-mono text-sm font-semibold text-foreground">
-                                    {usage.chord}
-                                </span>
-                                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                    ×{usage.count}
-                                    <PlusIcon className="size-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
-                                </span>
-                            </button>
-                        </li>
+                <div className="grid grid-cols-2 gap-2">
+                    {filtered.map((chord) => (
+                        <ChordCell
+                            key={chord.key}
+                            symbol={chord.symbol}
+                            voicing={chord.voicing}
+                            onInsert={onInsert}
+                        />
                     ))}
-                </ul>
-            )}
-
-            {usages.length > 0 && (
-                <p className="text-[11px] text-muted-foreground">
-                    {usages.length} {usages.length === 1 ? "chord" : "chords"} in this sheet
-                    {" "}· click to insert
-                </p>
+                </div>
             )}
         </div>
     );

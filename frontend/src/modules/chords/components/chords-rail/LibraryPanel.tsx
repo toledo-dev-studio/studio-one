@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { ChevronDownIcon, SearchIcon, TriangleAlertIcon } from "lucide-react";
 
@@ -11,7 +11,8 @@ import {
 } from "@/lib/chords/symbols";
 import { Spinner } from "@/shared/components/spinner/Spinner";
 import { Button } from "@/shared/shadcn/ui/button";
-import { ChordDiagram } from "../chord-diagram/ChordDiagram";
+import { useChordBook } from "../../hooks/use-chord-book";
+import { ChordCell } from "./ChordCell";
 
 /** How many chords are shown before the user asks for more. */
 const PAGE_SIZE = 10;
@@ -55,28 +56,9 @@ interface Props {
  * shown in pages of ten chords.
  */
 export const LibraryPanel = ({ onInsert }: Props) => {
-    const [book, setBook] = useState<GuitarChordBook | null>(null);
-    const [failed, setFailed] = useState(false);
+    const { book, failed } = useChordBook();
     const [search, setSearch] = useState("");
     const [visible, setVisible] = useState(PAGE_SIZE);
-
-    useEffect(() => {
-        let active = true;
-
-        import("@/lib/chords/guitar-chords.json")
-            .then((module) => {
-                if (active)
-                    setBook((module.default ?? module) as unknown as GuitarChordBook);
-            })
-            .catch(() => {
-                if (active)
-                    setFailed(true);
-            });
-
-        return () => {
-            active = false;
-        };
-    }, []);
 
     const entries = useMemo(() => buildEntries(book), [book]);
     const term = search.trim().toLowerCase();
@@ -125,29 +107,13 @@ export const LibraryPanel = ({ onInsert }: Props) => {
             ) : (
                 <div className="grid grid-cols-2 gap-2">
                     {shown.map((entry) => (
-                        <button
+                        <ChordCell
                             key={entry.symbol}
-                            type="button"
+                            symbol={entry.symbol}
+                            voicing={entry.voicing ?? null}
+                            onInsert={onInsert}
                             disabled={!entry.voicing}
-                            onClick={() => onInsert(entry.symbol)}
-                            title={`Insert ${entry.symbol}`}
-                            className="flex cursor-pointer flex-col items-center gap-1 rounded-xl border border-border/70 bg-background p-2 transition-colors hover:border-primary/50 hover:bg-muted/60 active:translate-y-px disabled:pointer-events-none disabled:opacity-40"
-                        >
-                            {entry.voicing ? (
-                                <ChordDiagram
-                                    voicing={entry.voicing}
-                                    label={`${entry.symbol} chord diagram`}
-                                    className="w-full"
-                                />
-                            ) : (
-                                <span className="grid h-20 w-full place-items-center text-[10px] text-muted-foreground">
-                                    no shape
-                                </span>
-                            )}
-                            <span className="font-mono text-xs font-semibold text-foreground">
-                                {entry.symbol}
-                            </span>
-                        </button>
+                        />
                     ))}
                 </div>
             )}
